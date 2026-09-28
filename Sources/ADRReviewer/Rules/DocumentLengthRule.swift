@@ -8,6 +8,10 @@ public struct DocumentLengthRule: Rule {
 
     public let id = "document-length"
 
+    public var summary: String {
+        "文書全体の文字数(改行・空白込み)が\(warningThreshold)字を超えると warning、\(errorThreshold)字を超えると error を報告します。"
+    }
+
     /// A document longer than this many characters produces a warning.
     public var warningThreshold: Int
     /// A document longer than this many characters produces an error.

@@ -41,6 +41,12 @@ import Testing
         #expect(diagnostics.first?.message.contains("上限5000字") == true)
     }
 
+    @Test func summaryMentionsThresholds() {
+        let rule = DocumentLengthRule(warningThreshold: 10, errorThreshold: 20)
+        #expect(rule.summary.contains("10字"))
+        #expect(rule.summary.contains("20字"))
+    }
+
     @Test func countsCharactersNotBytes() {
         // 5,001 Japanese characters are 15,003 UTF-8 bytes; must be a warning, not an error.
         let diagnostics = rule.check(document(length: 5_001))
