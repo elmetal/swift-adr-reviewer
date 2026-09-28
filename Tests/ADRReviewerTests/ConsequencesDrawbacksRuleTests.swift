@@ -27,6 +27,10 @@ import Testing
         "Pros: fast. Cons: complex.",
         "There is a trade-off with flexibility.",
         "Known drawbacks: none yet.",
+        "Web 側のリリースが完了するまで機能は実現できない。",
+        "案 A で得られたはずの即時性の利点は失われる。",
+        "API のバージョン互換性を管理する必要が生じる。",
+        "機能リリースは Web 側のスケジュールに依存する。",
     ])
     func mentioningADrawbackReportsNothing(body: String) {
         #expect(check(body).isEmpty)
@@ -35,6 +39,9 @@ import Testing
     @Test(arguments: [
         "ビルドが速くなる。開発体験が良くなる。",
         "### 良い点\n速い。\n### 効果\n生産性が上がる。",
+        "契約化された API を経由するため、機能が突然壊れるリスクがなくなる。",
+        "運用上の懸念は解消される。デメリットはない。",
+        "There is no risk of breakage. It removes the risk of drift.",
     ])
     func onlyBenefitsIsWarningAtHeading(body: String) {
         let diagnostics = check(body)
@@ -43,6 +50,10 @@ import Testing
         #expect(diagnostics.first?.ruleID == "consequences-drawbacks")
         #expect(diagnostics.first?.line == 4)
         #expect(diagnostics.first?.message.contains("負の影響") == true)
+    }
+
+    @Test func negatedAndAffirmedKeywordInOneSentenceCounts() {
+        #expect(check("移行のリスクはなくなるが、運用のリスクが残る。").isEmpty)
     }
 
     @Test func keywordsInsideCodeBlocksDoNotCount() {
