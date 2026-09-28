@@ -44,6 +44,15 @@ import Testing
         #expect(diagnostics.first?.message.contains("対策や許容") == true)
     }
 
+    @Test(arguments: [
+        "契約化された API を経由するため、機能が突然壊れるリスクがなくなる。",
+        "運用上の懸念は解消される。",
+        "案 A の利点は失われる。互換性を管理する必要が生じる。",  // costs, not risks
+    ])
+    func negatedOrCostOnlySentencesAreNotChecked(consequences: String) {
+        #expect(check(consequences).isEmpty)
+    }
+
     @Test func reportsEachUnaddressedDrawbackWithItsLine() {
         let consequences = """
         リスクAがある。

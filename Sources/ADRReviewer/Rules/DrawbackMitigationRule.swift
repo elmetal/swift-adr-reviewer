@@ -1,7 +1,8 @@
 /// Checks that every drawback recorded in the 結果 section is addressed.
 ///
-/// A sentence of the 結果 section (subsections included) that mentions a drawback
-/// keyword (see ``ConsequencesDrawbacksRule/defaultKeywords``) must be followed by
+/// A sentence of the 結果 section (subsections included) that states a drawback
+/// keyword (see ``ConsequencesDrawbacksRule/defaultKeywords``; a negated mention
+/// such as リスクがなくなる does not count) must be followed by
 /// a mitigation: the same sentence or the next one contains a mitigation marker
 /// such as 対策, 軽減, 許容 or 受け入れる. Alternatively, a subsection of 結果 whose
 /// heading is a mitigation marker (e.g. `### 対策`) with a non-empty body counts as
@@ -39,7 +40,7 @@ public struct DrawbackMitigationRule: Rule {
         let sentences = document.sentences(in: section)
         return sentences.indices.compactMap { index in
             let sentence = sentences[index]
-            guard let keyword = drawbackKeywords.first(where: sentence.contains) else { return nil }
+            guard let keyword = ConsequencesDrawbacksRule.statesDrawback(sentence, keywords: drawbackKeywords) else { return nil }
             if isMitigation(sentence) { return nil }
             if index + 1 < sentences.endIndex, isMitigation(sentences[index + 1]) { return nil }
 
