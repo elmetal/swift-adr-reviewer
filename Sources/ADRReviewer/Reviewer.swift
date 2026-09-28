@@ -16,6 +16,7 @@ public struct Reviewer: Sendable {
         SentenceLengthRule(),
         ConsequencesDrawbacksRule(),
         AmbiguousDecisionRule(),
+        DecisionRationaleRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {

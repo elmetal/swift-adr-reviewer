@@ -39,6 +39,14 @@ public struct ADRSection: Sendable, Equatable {
         severity: .warning
     )
 
+    /// An optional section that explains why the decision was made. Not part of
+    /// ``standard``: a rationale may instead be written inside the decision section.
+    public static let rationale = ADRSection(
+        name: "決定理由",
+        aliases: ["理由", "根拠", "Rationale", "Justification", "Basis", "Reason", "Why"],
+        severity: .warning
+    )
+
     /// The standard sections, in the order they usually appear.
     public static let standard: [ADRSection] = [.status, .context, .decision, .consequences, .alternatives]
 }

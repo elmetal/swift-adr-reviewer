@@ -110,6 +110,9 @@ Markdown の見出しで次のセクションを持つ ADR を想定していま
 | | 置き換え済みなのに置き換え先の ADR への参照(番号またはリンク)が無い | warning |
 | `alternatives` | 検討した選択肢セクションにリスト項目・小見出しが 2 つ未満で、表も無い | warning |
 | `sentence-length` | 地の文の一文が 100 字(空白を除く)を超える | warning |
+| `consequences-drawbacks` | 結果セクションに負の影響を示す語(デメリット・トレードオフ・リスク・懸念など)が無い | warning |
+| `ambiguous-decision` | 決定セクションの文に曖昧な表現(かもしれない・検討する・できれば・基本的に など)がある | error |
+| `decision-rationale` | 決定理由セクションが無く、決定セクションの文に理由を示す表現(ため・ので・なぜなら など)も無い | warning |
 
 セクションの見出しは、次の語を含んでいれば認識します(ASCII の大文字小文字は区別しません)。
 
@@ -120,6 +123,7 @@ Markdown の見出しで次のセクションを持つ ADR を想定していま
 | 決定 | 決定 / Decision |
 | 結果 | 結果 / 影響 / 帰結 / Consequences |
 | 検討した選択肢 | 選択肢 / 代替案 / 候補 / Alternatives / Options / Considered |
+| 決定理由(任意) | 理由 / 根拠 / Rationale / Justification / Basis / Reason / Why |
 
 ステータスの値は、提案中(Proposed / Draft / 下書き)、承認済み(Accepted / Approved / 承認 / 採用)、却下(Rejected)、廃止(Deprecated / 非推奨)、置き換え済み(Superseded / 置換済み)の表記を認識します。
 
