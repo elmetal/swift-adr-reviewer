@@ -15,6 +15,11 @@ public struct Section: Sendable, Equatable {
         self.codeBlockLines = codeBlockLines
     }
 
+    /// 1-based line numbers of the body (the heading line excluded). Empty when the body is empty.
+    public var bodyLineRange: Range<Int> {
+        (heading.line + 1)..<(heading.line + 1 + bodyLines.count)
+    }
+
     /// `true` when the body has no line containing anything other than whitespace.
     public var isEmpty: Bool {
         bodyLines.allSatisfy { $0.allSatisfy(\.isWhitespace) }
