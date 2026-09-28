@@ -16,8 +16,8 @@ public struct Sentence: Sendable, Equatable {
     public var length: Int { text.count }
 }
 
-extension Document {
-    /// Prose sentences of the document, in order of appearance.
+extension Sentence {
+    /// Prose sentences in `markup`, in order of appearance.
     ///
     /// Only paragraphs are considered (including those inside list items and block
     /// quotes). Headings, code blocks, tables and HTML are skipped. Inside a paragraph,
@@ -25,10 +25,10 @@ extension Document {
     /// join the lines without inserting a space. Sentences end at 。！？!? followed
     /// by any closing quotes or brackets; the trailing text without a terminator is
     /// also a sentence. Whitespace is removed from sentences.
-    public var sentences: [Sentence] {
+    static func all(in markup: Markdown.Document) -> [Sentence] {
         var collector = ParagraphCollector()
-        collector.visit(Markdown.Document(parsing: content))
-        return collector.paragraphs.flatMap(Self.sentences(in:))
+        collector.visit(markup)
+        return collector.paragraphs.flatMap(sentences(in:))
     }
 
     private static let terminators: Set<Character> = ["。", "！", "？", "!", "?"]
