@@ -14,6 +14,7 @@ public struct Reviewer: Sendable {
         StatusRule(),
         AlternativesRule(),
         SentenceLengthRule(),
+        ConsequencesDrawbacksRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
