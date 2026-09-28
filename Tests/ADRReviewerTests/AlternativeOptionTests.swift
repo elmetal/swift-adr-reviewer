@@ -63,3 +63,36 @@ import Testing
         #expect(!Document(path: "adr.md", content: "## 検討した選択肢\n- 案A\n").sections[0].containsTable)
     }
 }
+
+@Suite struct ParentSectionTests {
+    private let document = Document(path: "adr.md", content: """
+        ## Basis of the Decision
+        ### 選択肢
+        1. 案A
+        2. 案B
+        ### 評価テーブル
+        | 観点 | 案A | 案B |
+        |---|---|---|
+        | 速度 | ◎ | △ |
+        ## 結果
+        本文
+        """)
+
+    @Test func parentSectionIsTheEnclosingHeading() {
+        let options = document.sections(matching: .alternatives)[0]
+        #expect(document.parentSection(of: options)?.heading.title == "Basis of the Decision")
+        #expect(document.parentSection(of: document.sections[0]) == nil)
+    }
+
+    @Test func tableInSiblingSubsectionCountsAsComparison() {
+        let options = document.sections(matching: .alternatives)[0]
+        #expect(!options.containsTable)
+        #expect(document.comparesOptionsInTable(options))
+    }
+
+    @Test func alternativeRulesSkipWhenParentHasTable() {
+        #expect(AlternativeRejectionRule().check(document).isEmpty)
+        #expect(AlternativesRule(minimumOptions: 5).check(document).isEmpty)
+        #expect(DecisionInAlternativesRule().check(document).isEmpty)
+    }
+}
