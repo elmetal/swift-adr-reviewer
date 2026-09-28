@@ -26,12 +26,39 @@ public struct Sentence: Sendable, Equatable {
     }
 
     /// `true` when the sentence carries something that can back a claim: a link,
-    /// a decimal number, or a reference to a measurement or source.
+    /// an evidential number, or a reference to a measurement or source.
     public var hasBacking: Bool {
-        containsLink
-            || text.unicodeScalars.contains { $0.properties.numericType == .decimal }
-            || Self.backingMarkers.contains(where: contains)
+        containsLink || hasEvidentialNumber || Self.backingMarkers.contains(where: contains)
     }
+
+    /// `true` when the sentence contains a decimal number that is not merely counting
+    /// or ordering things in the text (2つ, 3案, 第2 …).
+    public var hasEvidentialNumber: Bool {
+        let characters = Array(text)
+        var index = 0
+        while index < characters.count {
+            guard Self.isDecimalDigit(characters[index]) else { index += 1; continue }
+            let start = index
+            while index < characters.count, Self.isDecimalDigit(characters[index]) { index += 1 }
+
+            let precededByOrdinal = start > 0 && characters[start - 1] == "第"
+            let rest = String(characters[index...])
+            let followedByCounter = Self.countingSuffixes.contains(where: rest.hasPrefix)
+            if !precededByOrdinal, !followedByCounter { return true }
+        }
+        return false
+    }
+
+    private static func isDecimalDigit(_ character: Character) -> Bool {
+        character.unicodeScalars.allSatisfy { $0.properties.numericType == .decimal }
+    }
+
+    /// Counters and ordinals that make a number a count of items in the text rather
+    /// than a measurement: 2つの選択肢, 3案, 4項目, 5番目.
+    static let countingSuffixes: [String] = [
+        "つ", "個", "案", "項目", "観点", "点", "章", "節", "番目", "番", "段階", "種類", "通り", "パターン", "択",
+        "つめ", "つ目", "個目", "案目",
+    ]
 
     static let backingMarkers: [String] = [
         "http", "adr-", "出典", "参照", "参考", "計測", "測定", "ベンチマーク", "調査", "検証結果", "実測",
