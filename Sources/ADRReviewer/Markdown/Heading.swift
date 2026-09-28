@@ -17,18 +17,12 @@ public struct Heading: Sendable, Equatable {
     }
 }
 
-extension Document {
-    /// The document split into lines. Any newline sequence (LF, CRLF, …) is a separator.
-    public var lines: [Substring] {
-        content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
-    }
-
-    /// Headings in the document, in order of appearance, as parsed by swift-markdown.
-    /// Both ATX (`## Title`) and setext (underlined) headings are recognised; text
-    /// inside fenced code blocks is not.
-    public var headings: [Heading] {
+extension Heading {
+    /// Headings in `markup`, in order of appearance. Both ATX (`## Title`) and setext
+    /// (underlined) headings are recognised; text inside fenced code blocks is not.
+    static func all(in markup: Markdown.Document) -> [Heading] {
         var collector = HeadingCollector()
-        collector.visit(Markdown.Document(parsing: content))
+        collector.visit(markup)
         return collector.headings
     }
 }

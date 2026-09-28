@@ -29,31 +29,26 @@ public struct Section: Sendable, Equatable {
     }
 }
 
-extension Document {
-    /// Sections of the document, one per heading, in order of appearance.
-    public var sections: [Section] {
-        let lines = lines
-        let headings = headings
-        let codeBlockLines = codeBlockLines
-
-        return headings.enumerated().map { index, heading in
+extension Section {
+    /// One section per heading, in order of appearance.
+    static func all(headings: [Heading], lines: [Substring], codeBlockLines: Set<Int>) -> [Section] {
+        headings.enumerated().map { index, heading in
             let next = headings[(index + 1)...].first { $0.level <= heading.level }
             let endLine = next.map { $0.line - 1 } ?? lines.count
             // `heading.line` is 1-based, so the body starts at 0-based index `heading.line`.
             let bodyRange = heading.line..<max(heading.line, endLine)
-            let body = lines[bodyRange].map(String.init)
             return Section(
                 heading: heading,
-                bodyLines: body,
+                bodyLines: lines[bodyRange].map(String.init),
                 codeBlockLines: codeBlockLines.filter { bodyRange.contains($0 - 1) }
             )
         }
     }
 
     /// 1-based line numbers occupied by fenced or indented code blocks, fences included.
-    var codeBlockLines: Set<Int> {
+    static func codeBlockLines(in markup: Markdown.Document) -> Set<Int> {
         var collector = CodeBlockCollector()
-        collector.visit(Markdown.Document(parsing: content))
+        collector.visit(markup)
         return collector.lines
     }
 }
