@@ -26,7 +26,7 @@ extension Document {
     /// (underlined with `===` or `---`) are not recognised.
     public var headings: [Heading] {
         Self.linesOutsideCodeBlocks(lines.map(String.init)).compactMap { index, line in
-            Self.parseHeading(line.trimmingCharacters(in: .whitespaces), lineNumber: index + 1)
+            Self.parseHeading(line.trimmingCharacters(in: .horizontalWhitespace), lineNumber: index + 1)
         }
     }
 
@@ -37,7 +37,7 @@ extension Document {
         var openFence: Substring? = nil
 
         for (index, rawLine) in lines.enumerated() {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            let line = rawLine.trimmingCharacters(in: .horizontalWhitespace)
 
             if let fence = openFence {
                 if line.hasPrefix(fence) { openFence = nil }
@@ -68,13 +68,13 @@ extension Document {
         // `#Title` without a space is not a heading; an empty heading (`#`) is.
         guard rest.isEmpty || rest.first == " " || rest.first == "\t" else { return nil }
 
-        rest = rest.trimmingCharacters(in: .whitespaces)[...]
+        rest = rest.trimmingCharacters(in: .horizontalWhitespace)[...]
         // Optional closing sequence: `## Title ##`
         let closing = rest.reversed().prefix { $0 == "#" }
         if !closing.isEmpty {
             let beforeClosing = rest.dropLast(closing.count)
             if beforeClosing.isEmpty || beforeClosing.last == " " || beforeClosing.last == "\t" {
-                rest = beforeClosing.trimmingCharacters(in: .whitespaces)[...]
+                rest = beforeClosing.trimmingCharacters(in: .horizontalWhitespace)[...]
             }
         }
         return Heading(level: hashes.count, title: String(rest), line: lineNumber)
@@ -91,5 +91,5 @@ private extension StringProtocol {
 }
 
 private extension Set<Character> {
-    static let whitespaces: Set<Character> = [" ", "\t", "\r"]
+    static let horizontalWhitespace: Set<Character> = [" ", "\t", "\r"]
 }
