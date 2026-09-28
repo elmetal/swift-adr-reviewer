@@ -6,8 +6,33 @@ import Foundation
 struct ADRReviewerCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "adr-reviewer",
-        abstract: "Reviews the quality of Architecture Decision Records written in Japanese."
+        abstract: "Reviews the quality of Architecture Decision Records written in Japanese.",
+        discussion: helpDiscussion
     )
+
+    private static var helpDiscussion: String {
+        let rules = Reviewer.default.rules
+            .map { "  \($0.id)\n      \($0.summary)" }
+            .joined(separator: "\n")
+
+        return """
+        指定した ADR ファイルを組み込みのルールで検査し、指摘を1行ずつ標準出力に表示します。
+
+        RULES:
+        \(rules)
+
+        OUTPUT FORMAT:
+          <path>[:<line>]: <warning|error>: <message> [<rule-id>]
+
+        EXIT STATUS:
+          0  指摘なし、または warning のみ
+          1  error が1件以上ある(読み込めないファイルも error として扱う)
+
+        EXAMPLES:
+          adr-reviewer docs/adr/0001-use-swift.md
+          adr-reviewer docs/adr/*.md
+        """
+    }
 
     @Argument(help: "ADR files to review.", completion: .file(extensions: ["md"]))
     var files: [String]
