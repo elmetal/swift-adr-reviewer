@@ -16,6 +16,13 @@ public struct Sentence: Sendable, Equatable {
     public var length: Int { text.count }
 }
 
+extension Document {
+    /// Sentences that start within the body of `section` (subsections included).
+    public func sentences(in section: Section) -> [Sentence] {
+        sentences.filter { section.bodyLineRange.contains($0.line) }
+    }
+}
+
 extension Sentence {
     /// Prose sentences in `markup`, in order of appearance.
     ///
