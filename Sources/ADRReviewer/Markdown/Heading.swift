@@ -25,7 +25,15 @@ extension Document {
     /// Lines inside fenced code blocks (``` or ~~~) are ignored. Setext headings
     /// (underlined with `===` or `---`) are not recognised.
     public var headings: [Heading] {
-        var headings: [Heading] = []
+        Self.linesOutsideCodeBlocks(lines.map(String.init)).compactMap { index, line in
+            Self.parseHeading(line.trimmingCharacters(in: .whitespaces), lineNumber: index + 1)
+        }
+    }
+
+    /// Lines that are not inside a fenced code block (``` or ~~~), verbatim,
+    /// together with their 0-based index in `lines`.
+    static func linesOutsideCodeBlocks(_ lines: [String]) -> [(index: Int, line: String)] {
+        var result: [(index: Int, line: String)] = []
         var openFence: Substring? = nil
 
         for (index, rawLine) in lines.enumerated() {
@@ -35,15 +43,13 @@ extension Document {
                 if line.hasPrefix(fence) { openFence = nil }
                 continue
             }
-            if let fence = Self.codeFence(opening: line) {
+            if let fence = codeFence(opening: line) {
                 openFence = fence
                 continue
             }
-
-            guard let heading = Self.parseHeading(line, lineNumber: index + 1) else { continue }
-            headings.append(heading)
+            result.append((index, rawLine))
         }
-        return headings
+        return result
     }
 
     private static func codeFence(opening line: String) -> Substring? {
