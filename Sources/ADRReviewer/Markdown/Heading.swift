@@ -15,6 +15,11 @@ public struct Heading: Sendable, Equatable {
 }
 
 extension Document {
+    /// The document split into lines. Any newline sequence (LF, CRLF, …) is a separator.
+    public var lines: [Substring] {
+        content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+    }
+
     /// ATX headings in the document, in order of appearance.
     ///
     /// Lines inside fenced code blocks (``` or ~~~) are ignored. Setext headings
@@ -23,7 +28,7 @@ extension Document {
         var headings: [Heading] = []
         var openFence: Substring? = nil
 
-        for (index, rawLine) in content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).enumerated() {
+        for (index, rawLine) in lines.enumerated() {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
 
             if let fence = openFence {
