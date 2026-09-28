@@ -47,15 +47,7 @@ docs/adr/0001-use-swift.md:3: error: セクション「ステータス」に本�
 docs/adr/0001-use-swift.md:12: warning: 一文が長すぎます。141字あります(上限100字)。「このADRではアプリケーション…」を複数の文に分けてください。 [sentence-length]
 ```
 
-出力形式は次の通りです。行番号は、指摘が文書全体に関わる場合は省略されます。
-
-```
-<path>[:<line>]: <warning|error>: <message> [<rule-id>]
-```
-
-終了コードは、error が 1 件以上あれば `1`、指摘が無いか warning のみなら `0` です。読み込めないファイルは error として扱います。CI でマージをブロックする用途に使えます。
-
-`adr-reviewer --help` で、ルール一覧を含むヘルプが表示されます。
+error が 1 件以上あれば終了コードが `1` になるので、CI でマージをブロックする用途に使えます。出力形式や終了コードの詳細は `adr-reviewer --help` を参照してください。
 
 ### GitHub Actions で使う
 
