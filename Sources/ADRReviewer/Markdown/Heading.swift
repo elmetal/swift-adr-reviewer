@@ -1,8 +1,11 @@
-/// A Markdown ATX heading (`# Title` … `###### Title`).
+import Markdown
+
+/// A Markdown heading.
 public struct Heading: Sendable, Equatable {
     /// Heading level, 1 through 6.
     public var level: Int
-    /// Heading text with the leading `#`s, optional closing `#`s and surrounding whitespace removed.
+    /// Heading text as plain text: Markdown formatting removed, inline code kept
+    /// without backticks, surrounding whitespace trimmed.
     public var title: String
     /// 1-based line number in the document.
     public var line: Int
@@ -20,76 +23,21 @@ extension Document {
         content.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
     }
 
-    /// ATX headings in the document, in order of appearance.
-    ///
-    /// Lines inside fenced code blocks (``` or ~~~) are ignored. Setext headings
-    /// (underlined with `===` or `---`) are not recognised.
+    /// Headings in the document, in order of appearance, as parsed by swift-markdown.
+    /// Both ATX (`## Title`) and setext (underlined) headings are recognised; text
+    /// inside fenced code blocks is not.
     public var headings: [Heading] {
-        Self.linesOutsideCodeBlocks(lines.map(String.init)).compactMap { index, line in
-            Self.parseHeading(line.trimmingCharacters(in: .horizontalWhitespace), lineNumber: index + 1)
-        }
-    }
-
-    /// Lines that are not inside a fenced code block (``` or ~~~), verbatim,
-    /// together with their 0-based index in `lines`.
-    static func linesOutsideCodeBlocks(_ lines: [String]) -> [(index: Int, line: String)] {
-        var result: [(index: Int, line: String)] = []
-        var openFence: Substring? = nil
-
-        for (index, rawLine) in lines.enumerated() {
-            let line = rawLine.trimmingCharacters(in: .horizontalWhitespace)
-
-            if let fence = openFence {
-                if line.hasPrefix(fence) { openFence = nil }
-                continue
-            }
-            if let fence = codeFence(opening: line) {
-                openFence = fence
-                continue
-            }
-            result.append((index, rawLine))
-        }
-        return result
-    }
-
-    private static func codeFence(opening line: String) -> Substring? {
-        for fenceCharacter in ["`", "~"] {
-            let run = line.prefix { String($0) == fenceCharacter }
-            if run.count >= 3 { return run }
-        }
-        return nil
-    }
-
-    private static func parseHeading(_ line: String, lineNumber: Int) -> Heading? {
-        let hashes = line.prefix { $0 == "#" }
-        guard (1...6).contains(hashes.count) else { return nil }
-
-        var rest = line.dropFirst(hashes.count)
-        // `#Title` without a space is not a heading; an empty heading (`#`) is.
-        guard rest.isEmpty || rest.first == " " || rest.first == "\t" else { return nil }
-
-        rest = rest.trimmingCharacters(in: .horizontalWhitespace)[...]
-        // Optional closing sequence: `## Title ##`
-        let closing = rest.reversed().prefix { $0 == "#" }
-        if !closing.isEmpty {
-            let beforeClosing = rest.dropLast(closing.count)
-            if beforeClosing.isEmpty || beforeClosing.last == " " || beforeClosing.last == "\t" {
-                rest = beforeClosing.trimmingCharacters(in: .horizontalWhitespace)[...]
-            }
-        }
-        return Heading(level: hashes.count, title: String(rest), line: lineNumber)
+        var collector = HeadingCollector()
+        collector.visit(Markdown.Document(parsing: content))
+        return collector.headings
     }
 }
 
-private extension StringProtocol {
-    func trimmingCharacters(in set: Set<Character>) -> String {
-        var result = Substring(self)
-        while let first = result.first, set.contains(first) { result = result.dropFirst() }
-        while let last = result.last, set.contains(last) { result = result.dropLast() }
-        return String(result)
-    }
-}
+private struct HeadingCollector: MarkupWalker {
+    var headings: [Heading] = []
 
-private extension Set<Character> {
-    static let horizontalWhitespace: Set<Character> = [" ", "\t", "\r"]
+    mutating func visitHeading(_ heading: Markdown.Heading) {
+        guard let line = heading.range?.lowerBound.line else { return }
+        headings.append(Heading(level: heading.level, title: heading.proseText, line: line))
+    }
 }

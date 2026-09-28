@@ -45,6 +45,30 @@ import Testing
         #expect(!sections("## 背景\n```\n```\n")[0].isEmpty)
     }
 
+    @Test func codeBlockLinesAreExcludedFromBodyLinesOutsideCodeBlocks() {
+        let content = """
+        ## 背景
+        前
+        ```
+        - 中
+        ```
+        後
+        ## 決定
+        本文
+        """
+        let section = sections(content)[0]
+        #expect(section.codeBlockLines == [3, 4, 5])
+        #expect(section.bodyLinesOutsideCodeBlocks.map(\.line) == [2, 6])
+        #expect(section.bodyLinesOutsideCodeBlocks.map(\.text) == ["前", "後"])
+    }
+
+    @Test func indentedCodeBlockIsExcluded() {
+        let content = "## 背景\n前\n\n    - 中(インデントコード)\n\n後\n"
+        let section = sections(content)[0]
+        // cmark extends an indented code block's range over the blank line that follows it.
+        #expect(section.bodyLinesOutsideCodeBlocks.map(\.text) == ["前", "", "後", ""])
+    }
+
     @Test func noHeadingsGivesNoSections() {
         #expect(sections("本文だけ").isEmpty)
     }

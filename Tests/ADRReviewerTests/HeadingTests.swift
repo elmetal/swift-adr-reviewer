@@ -52,6 +52,38 @@ import Testing
         #expect(headings(content).map(\.title) == ["背景", "決定"])
     }
 
+    @Test func recognisesSetextHeadings() {
+        let content = """
+        タイトル
+        ========
+        本文
+
+        背景
+        ---
+        """
+        #expect(headings(content) == [
+            Heading(level: 1, title: "タイトル", line: 1),
+            Heading(level: 2, title: "背景", line: 5),
+        ])
+    }
+
+    @Test func titleIsPlainText() {
+        #expect(headings("## **決定**事項").map(\.title) == ["決定事項"])
+        #expect(headings("## `swift build` を使う").map(\.title) == ["swift build を使う"])
+        #expect(headings("## [背景](https://example.com)").map(\.title) == ["背景"])
+    }
+
+    @Test func codeBlockInsideListItemIsSkipped() {
+        let content = """
+        - 項目
+          ```
+          ## 無視
+          ```
+        ## 決定
+        """
+        #expect(headings(content).map(\.title) == ["決定"])
+    }
+
     @Test func handlesCRLF() {
         #expect(headings("## 背景\r\n## 決定\r\n").map(\.title) == ["背景", "決定"])
     }
