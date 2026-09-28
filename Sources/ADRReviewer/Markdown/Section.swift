@@ -14,6 +14,11 @@ public struct Section: Sendable, Equatable {
     public var isEmpty: Bool {
         bodyLines.allSatisfy { $0.allSatisfy(\.isWhitespace) }
     }
+
+    /// Body lines outside fenced code blocks, verbatim, with their 1-based line number in the document.
+    public var bodyLinesOutsideCodeBlocks: [(line: Int, text: String)] {
+        Document.linesOutsideCodeBlocks(bodyLines).map { (heading.line + 1 + $0.index, $0.line) }
+    }
 }
 
 extension Document {
