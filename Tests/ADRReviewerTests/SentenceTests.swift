@@ -80,6 +80,20 @@ import Testing
         #expect(!sentence.contains(" "))
     }
 
+    @Test(arguments: [
+        "以下の2つの選択肢を検討した。", "3案を比較した。", "第2の理由。", "4観点で評価した。", "5番目の案。", "２つの案。",
+    ])
+    func countingNumbersAreNotEvidence(text: String) {
+        #expect(!Sentence(text: text.filter { !$0.isWhitespace }, line: 1).hasBacking)
+    }
+
+    @Test(arguments: [
+        "ビルドが10分かかる。", "30%速い。", "採用企業は300社。", "2025年時点の調査。", "5人のチーム。", "v2に移行。", "3倍速い。",
+    ])
+    func measurementsAreEvidence(text: String) {
+        #expect(Sentence(text: text, line: 1).hasEvidentialNumber)
+    }
+
     @Test func hasBackingDetectsLinksNumbersAndSourceMarkers() {
         #expect(Sentence(text: "速い。", line: 1).hasBacking == false)
         #expect(Sentence(text: "速い。", line: 1, containsLink: true).hasBacking)

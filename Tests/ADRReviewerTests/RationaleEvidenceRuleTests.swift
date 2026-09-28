@@ -35,6 +35,7 @@ import Testing
     @Test(arguments: [
         "経験者が多いため。",
         "経験者が多いため。\n型安全なので不具合を減らせる。\n将来性があるため。",
+        "以下の 2 つの理由による。\n経験者が多いため。\n将来性があるため。",
     ])
     func noBackedReasonIsOneWarningAtRationaleHeading(rationale: String) {
         let diagnostics = check(rationale: rationale)
