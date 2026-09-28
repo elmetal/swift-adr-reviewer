@@ -8,15 +8,23 @@ public struct Sentence: Sendable, Equatable {
     public var line: Int
     /// `true` when any part of the sentence is link text or image alt text.
     public var containsLink: Bool
+    /// Number of characters of ``text`` that came from inline code spans.
+    public var inlineCodeLength: Int
 
-    public init(text: String, line: Int, containsLink: Bool = false) {
+    public init(text: String, line: Int, containsLink: Bool = false, inlineCodeLength: Int = 0) {
         self.text = text
         self.line = line
         self.containsLink = containsLink
+        self.inlineCodeLength = inlineCodeLength
     }
 
-    /// Number of characters in the sentence.
+    /// Number of characters in the sentence, inline code included.
     public var length: Int { text.count }
+
+    /// Number of characters a reader has to read as prose: ``length`` without the
+    /// characters of inline code spans, which are read as single tokens (identifiers,
+    /// paths, API names) rather than character by character.
+    public var proseLength: Int { length - inlineCodeLength }
 
     /// Whether the sentence contains `expression`, ignoring ASCII case and any
     /// whitespace in `expression` (sentence text never contains whitespace).
@@ -96,15 +104,19 @@ extension Sentence {
         var current: [Character] = []
         var currentLine: Int? = nil
         var currentHasLink = false
+        var currentCodeLength = 0
         var terminated = false
 
         func flush() {
             if let line = currentLine, !current.isEmpty {
-                result.append(Sentence(text: String(current), line: line, containsLink: currentHasLink))
+                result.append(Sentence(
+                    text: String(current), line: line, containsLink: currentHasLink, inlineCodeLength: currentCodeLength
+                ))
             }
             current = []
             currentLine = nil
             currentHasLink = false
+            currentCodeLength = 0
             terminated = false
         }
 
@@ -117,6 +129,7 @@ extension Sentence {
             if currentLine == nil { currentLine = paragraph.lines[index] }
             current.append(character)
             if paragraph.inLink[index] { currentHasLink = true }
+            if paragraph.inCode[index] { currentCodeLength += 1 }
             if terminators.contains(character) { terminated = true }
         }
         flush()
@@ -129,12 +142,14 @@ struct ProseParagraph {
     var characters: [Character] = []
     var lines: [Int] = []
     var inLink: [Bool] = []
+    var inCode: [Bool] = []
 
-    mutating func append(_ text: String, line: Int, inLink: Bool) {
+    mutating func append(_ text: String, line: Int, inLink: Bool, inCode: Bool = false) {
         for character in text {
             characters.append(character)
             lines.append(line)
             self.inLink.append(inLink)
+            self.inCode.append(inCode)
         }
     }
 }
@@ -160,7 +175,7 @@ private struct ParagraphCollector: MarkupWalker {
     }
 
     mutating func visitInlineCode(_ inlineCode: InlineCode) {
-        append(inlineCode.code, range: inlineCode.range)
+        append(inlineCode.code, range: inlineCode.range, inCode: true)
     }
 
     mutating func visitLink(_ link: Link) {
@@ -185,9 +200,9 @@ private struct ParagraphCollector: MarkupWalker {
     // list items and block quotes are found, while headings, code blocks, tables and HTML
     // blocks contribute nothing because they contain no Paragraph.
 
-    private mutating func append(_ text: String, range: SourceRange?) {
+    private mutating func append(_ text: String, range: SourceRange?, inCode: Bool = false) {
         guard current != nil else { return }
         if let line = range?.lowerBound.line { fallbackLine = line }
-        current?.append(text, line: fallbackLine, inLink: linkDepth > 0)
+        current?.append(text, line: fallbackLine, inLink: linkDepth > 0, inCode: inCode)
     }
 }

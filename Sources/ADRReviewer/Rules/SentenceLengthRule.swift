@@ -1,5 +1,7 @@
 /// Reports prose sentences longer than a threshold. See ``Document/sentences``
-/// for what counts as a sentence.
+/// for what counts as a sentence. Length is ``Sentence/proseLength``: characters
+/// inside inline code spans are not counted, since identifiers and API names are
+/// read as single tokens.
 public struct SentenceLengthRule: Rule {
     public static let defaultMaximumLength = 100
 
@@ -14,19 +16,19 @@ public struct SentenceLengthRule: Rule {
     }
 
     public var summary: String {
-        "地の文の一文(。！？で区切り、空白を除く)が\(maximumLength)字を超えると warning を報告します。見出し・コードブロック・表は対象外です。"
+        "地の文の一文(。！？で区切り、空白とインラインコードを除く)が\(maximumLength)字を超えると warning を報告します。見出し・コードブロック・表は対象外です。"
     }
 
     public func check(_ document: Document) -> [Diagnostic] {
         document.sentences
-            .filter { $0.length > maximumLength }
+            .filter { $0.proseLength > maximumLength }
             .map { sentence in
                 Diagnostic(
                     path: document.path,
                     line: sentence.line,
                     severity: .warning,
                     ruleID: id,
-                    message: "一文が長すぎます。\(sentence.length)字あります(上限\(maximumLength)字)。「\(Self.excerpt(of: sentence.text))」を複数の文に分けてください。"
+                    message: "一文が長すぎます。\(sentence.proseLength)字あります(上限\(maximumLength)字、インラインコードを除く)。「\(Self.excerpt(of: sentence.text))」を複数の文に分けてください。"
                 )
             }
     }

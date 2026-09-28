@@ -67,6 +67,15 @@ import Testing
         #expect(sentences(content).map(\.text) == ["swiftbuildを公式ドキュメントの通りに実行する。"])
     }
 
+    @Test func proseLengthExcludesInlineCode() {
+        let result = sentences("`AuthClient` と `CacheClient` を統合する。次。")
+        #expect(result[0].length == 28)
+        #expect(result[0].inlineCodeLength == 21)
+        #expect(result[0].proseLength == 7)
+        #expect(result[1].inlineCodeLength == 0)
+        #expect(result[1].proseLength == 2)
+    }
+
     @Test func containsLinkIsSetForSentencesWithLinkOrImage() {
         let content = "リンク無し。[調査](https://example.com)を参照。![図](a.png)の通り。"
         #expect(sentences(content).map(\.containsLink) == [false, true, true])
