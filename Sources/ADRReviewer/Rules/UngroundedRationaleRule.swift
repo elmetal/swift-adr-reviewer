@@ -8,7 +8,7 @@
 /// the whole rule when the document has no 背景 sentences.
 public struct UngroundedRationaleRule: Rule {
     public static let defaultGroundingThreshold = 0.2
-    public static let defaultMinimumBigrams = 6
+    public static let defaultMinimumBigrams = 8
 
     public let id = "ungrounded-rationale"
 
