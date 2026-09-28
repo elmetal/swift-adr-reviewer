@@ -10,6 +10,7 @@ public struct Reviewer: Sendable {
     public static let `default` = Reviewer(rules: [
         DocumentLengthRule(),
         RequiredSectionsRule(),
+        EmptySectionRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
