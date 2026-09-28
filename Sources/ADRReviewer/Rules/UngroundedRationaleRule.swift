@@ -2,7 +2,9 @@
 ///
 /// For every reason sentence (see ``Document/reasonSentences``) the rule removes
 /// the character bigrams that belong to the decision (title and 決定 sentences) and
-/// measures how much of the rest occurs in the 背景 section. A reason whose share
+/// measures how much of the rest occurs in the grounding text: the sentences of
+/// the 背景 section plus the table cells of the 背景 and 決定理由 sections (an
+/// evaluation table is where an ADR usually records the facts it reasons from). A reason whose share
 /// is below ``groundingThreshold`` is reported unless it, or the sentence right
 /// after it, carries backing (a link, a number, a source). Very short remainders are skipped, and so is
 /// the whole rule when the document has no 背景 sentences.
@@ -26,12 +28,16 @@ public struct UngroundedRationaleRule: Rule {
     }
 
     public var summary: String {
-        "理由の文が「背景」の記述とほとんど重ならず、リンク・数値・出典などの裏付けも無ければ warning を報告します(文字 bigram の重なりで判定)。"
+        "理由の文が「背景」の記述(背景・決定理由にある表を含む)とほとんど重ならず、リンク・数値・出典などの裏付けも無ければ warning を報告します(文字 bigram の重なりで判定)。"
     }
 
     public func check(_ document: Document) -> [Diagnostic] {
-        let contextBigrams = document.contextSentences.reduce(into: Set<String>()) { $0.formUnion(Bigrams.of($1.text)) }
+        var contextBigrams = document.contextSentences.reduce(into: Set<String>()) { $0.formUnion(Bigrams.of($1.text)) }
         guard !contextBigrams.isEmpty else { return [] }
+        let groundingSections = document.sections(matching: .context) + document.sections(matching: .rationale)
+        for cell in groundingSections.flatMap(document.tableCells(in:)) {
+            contextBigrams.formUnion(Bigrams.of(cell.text))
+        }
 
         var decisionBigrams = document.title.map { Bigrams.of($0.title) } ?? []
         for sentence in document.decisionSentences {
