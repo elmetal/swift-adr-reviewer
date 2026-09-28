@@ -1,37 +1,10 @@
-/// Reports ADRs that are missing the standard sections.
-///
-/// Sections are recognised by Markdown ATX headings. A heading matches a section
-/// when its title contains any of the section's aliases, so `## 背景と課題` or
-/// `## 2. 決定事項` both count. Matching ignores ASCII case.
+/// Reports ADRs that are missing the standard sections. See ``ADRSection`` for
+/// how headings are matched.
 public struct RequiredSectionsRule: Rule {
-    /// A section the rule looks for.
-    public struct Section: Sendable, Equatable {
-        /// Display name used in diagnostics.
-        public var name: String
-        /// Heading texts that identify the section.
-        public var aliases: [String]
-        /// Severity reported when the section is missing.
-        public var severity: Severity
-
-        public init(name: String, aliases: [String], severity: Severity) {
-            self.name = name
-            self.aliases = aliases
-            self.severity = severity
-        }
-    }
+    public typealias Section = ADRSection
 
     /// Sections every ADR must have (`error` when missing) or should have (`warning` when missing).
-    public static let defaultSections: [Section] = [
-        Section(name: "ステータス", aliases: ["ステータス", "状態", "Status"], severity: .warning),
-        Section(name: "背景", aliases: ["背景", "コンテキスト", "文脈", "状況", "Context"], severity: .error),
-        Section(name: "決定", aliases: ["決定", "Decision"], severity: .error),
-        Section(name: "結果", aliases: ["結果", "影響", "帰結", "Consequences"], severity: .error),
-        Section(
-            name: "検討した選択肢",
-            aliases: ["選択肢", "代替案", "候補", "Alternatives", "Options", "Considered"],
-            severity: .warning
-        ),
-    ]
+    public static let defaultSections: [Section] = ADRSection.standard
 
     public let id = "required-sections"
 
@@ -52,13 +25,10 @@ public struct RequiredSectionsRule: Rule {
     }
 
     public func check(_ document: Document) -> [Diagnostic] {
-        let titles = document.headings.map { $0.title.lowercased() }
+        let headings = document.headings
 
         return sections.compactMap { section in
-            let present = titles.contains { title in
-                section.aliases.contains { title.contains($0.lowercased()) }
-            }
-            guard !present else { return nil }
+            guard !headings.contains(where: section.matches) else { return nil }
 
             let kind = section.severity == .error ? "必須" : "推奨"
             return Diagnostic(

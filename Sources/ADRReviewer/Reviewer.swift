@@ -11,6 +11,7 @@ public struct Reviewer: Sendable {
         DocumentLengthRule(),
         RequiredSectionsRule(),
         EmptySectionRule(),
+        StatusRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
