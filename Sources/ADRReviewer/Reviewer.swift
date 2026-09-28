@@ -9,6 +9,7 @@ public struct Reviewer: Sendable {
     /// A reviewer with every built-in rule at its default settings.
     public static let `default` = Reviewer(rules: [
         DocumentLengthRule(),
+        RequiredSectionsRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
