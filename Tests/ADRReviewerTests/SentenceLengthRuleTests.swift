@@ -28,7 +28,7 @@ import Testing
         #expect(diagnostics.first?.severity == .warning)
         #expect(diagnostics.first?.ruleID == "sentence-length")
         #expect(diagnostics.first?.line == 1)
-        #expect(diagnostics.first?.message.contains("\(length)字あります(上限100字)") == true)
+        #expect(diagnostics.first?.message.contains("\(length)字あります(上限100字、インラインコードを除く)") == true)
         #expect(diagnostics.first?.message.contains("「あああああああああああああああ…」") == true)
     }
 
@@ -48,6 +48,15 @@ import Testing
         let diagnostics = check(content)
         #expect(diagnostics.count == 1)
         #expect(diagnostics.first?.message.contains("121字") == true)
+    }
+
+    @Test func inlineCodeIsNotCounted() {
+        let prose = String(repeating: "あ", count: 90)
+        let code = "`" + String(repeating: "x", count: 40) + "`"
+        #expect(check(prose + code + "。").isEmpty)
+        let diagnostics = check(prose + code + String(repeating: "い", count: 11) + "。")
+        #expect(diagnostics.count == 1)
+        #expect(diagnostics.first?.message.contains("102字あります") == true)
     }
 
     @Test func longCodeBlockLinesAreIgnored() {
