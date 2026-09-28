@@ -13,6 +13,7 @@ public struct Reviewer: Sendable {
         EmptySectionRule(),
         StatusRule(),
         AlternativesRule(),
+        SentenceLengthRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {

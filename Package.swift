@@ -14,10 +14,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
+        .package(url: "https://github.com/swiftlang/swift-markdown.git", from: "0.9.0"),
     ],
     targets: [
         .target(
-            name: "ADRReviewer"
+            name: "ADRReviewer",
+            dependencies: [
+                .product(name: "Markdown", package: "swift-markdown"),
+            ]
         ),
         .executableTarget(
             name: "ADRReviewerCLI",
