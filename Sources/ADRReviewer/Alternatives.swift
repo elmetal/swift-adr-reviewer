@@ -23,6 +23,19 @@ extension Section {
 }
 
 extension Document {
+    /// The nearest enclosing section of `section`: the closest preceding heading of a
+    /// lower level, or `nil` for a top-level section.
+    public func parentSection(of section: Section) -> Section? {
+        sections.last { $0.heading.line < section.heading.line && $0.heading.level < section.heading.level }
+    }
+
+    /// `true` when `section` or its enclosing section contains a table, i.e. the
+    /// options are compared in a table that may sit in a sibling subsection
+    /// (e.g. `### 選択肢` listing the options and `### 評価テーブル` comparing them).
+    public func comparesOptionsInTable(_ section: Section) -> Bool {
+        section.containsTable || parentSection(of: section)?.containsTable == true
+    }
+
     /// The options enumerated in `section`: list items at the indentation of the first
     /// list item, plus the section's direct subheadings. Nested items are details of an
     /// option, not options. Tables are not enumerated; see ``Section/containsTable``.

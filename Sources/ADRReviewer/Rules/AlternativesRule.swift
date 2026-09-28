@@ -3,8 +3,9 @@
 /// Options are those enumerated by ``Document/alternativeOptions(in:)``: list items
 /// at the indentation of the first list item plus direct subheadings. A Markdown
 /// table anywhere in the section is taken as a comparison and satisfies the rule on
-/// its own. A missing or empty section is left to ``RequiredSectionsRule`` and
-/// ``EmptySectionRule``.
+/// its own; so does a table in the enclosing section (see
+/// ``Document/comparesOptionsInTable(_:)``). A missing or empty section is left to
+/// ``RequiredSectionsRule`` and ``EmptySectionRule``.
 public struct AlternativesRule: Rule {
     public static let defaultMinimumOptions = 2
 
@@ -24,7 +25,7 @@ public struct AlternativesRule: Rule {
 
     public func check(_ document: Document) -> [Diagnostic] {
         guard let section = document.sections(matching: .alternatives).first, !section.isEmpty else { return [] }
-        if section.containsTable { return [] }
+        if document.comparesOptionsInTable(section) { return [] }
 
         let options = document.alternativeOptions(in: section).count
         guard options < minimumOptions else { return [] }

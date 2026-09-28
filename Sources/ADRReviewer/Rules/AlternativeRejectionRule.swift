@@ -3,8 +3,9 @@
 /// Each option enumerated by ``Document/alternativeOptions(in:)`` must, within
 /// its own lines, either give a reason (a reason marker such as ため / ので, or a
 /// pro/con keyword such as 利点 / 欠点 / デメリット) or be marked as the chosen one
-/// (採用 / 選定 / selected, without a negation). Sections that use a table are
-/// not checked, and a missing or empty section is left to the existing rules.
+/// (採用 / 選定 / selected, without a negation). Sections compared in a table (in
+/// the section itself or its enclosing section) are not checked, and a missing or
+/// empty section is left to the existing rules.
 public struct AlternativeRejectionRule: Rule {
     /// Expressions that justify keeping or dropping an option.
     public static let defaultReasonMarkers: [String] =
@@ -41,7 +42,7 @@ public struct AlternativeRejectionRule: Rule {
 
     public func check(_ document: Document) -> [Diagnostic] {
         guard let section = document.sections(matching: .alternatives).first, !section.isEmpty else { return [] }
-        if section.containsTable { return [] }
+        if document.comparesOptionsInTable(section) { return [] }
 
         return document.alternativeOptions(in: section).compactMap { option in
             let text = document.lines[(option.lineRange.lowerBound - 1)...(option.lineRange.upperBound - 1)]

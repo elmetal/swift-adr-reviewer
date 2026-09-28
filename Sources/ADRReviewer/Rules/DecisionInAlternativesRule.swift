@@ -6,7 +6,8 @@
 /// the bigrams that occur in two or more option titles (boilerplate such as
 /// 「を採用する」 or 「案A:」 does not distinguish options). The rule is satisfied when
 /// at least one option shares enough of its remaining bigrams with the decision.
-/// Sections that use a table, and missing or empty sections, are not checked.
+/// Sections compared in a table (in the section itself or its enclosing section),
+/// and missing or empty sections, are not checked.
 public struct DecisionInAlternativesRule: Rule {
     /// Minimum share of the smaller bigram set that must be shared.
     public static let defaultMatchThreshold = 0.4
@@ -32,7 +33,7 @@ public struct DecisionInAlternativesRule: Rule {
 
     public func check(_ document: Document) -> [Diagnostic] {
         guard let section = document.sections(matching: .alternatives).first, !section.isEmpty else { return [] }
-        if section.containsTable { return [] }
+        if document.comparesOptionsInTable(section) { return [] }
         let options = document.alternativeOptions(in: section)
         guard !options.isEmpty else { return [] }
 
