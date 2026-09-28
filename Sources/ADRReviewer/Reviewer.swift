@@ -18,6 +18,7 @@ public struct Reviewer: Sendable {
         AmbiguousDecisionRule(),
         DecisionRationaleRule(),
         WeakArgumentRule(),
+        DrawbackMitigationRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
