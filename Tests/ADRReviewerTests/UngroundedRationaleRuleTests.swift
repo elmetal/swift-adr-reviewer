@@ -52,6 +52,34 @@ import Testing
         #expect(check(rationale: rationale).isEmpty)
     }
 
+    @Test func tableCellsInRationaleSectionGroundReasons() {
+        let rationale = """
+        | 観点 | 案A | 案B |
+        |---|---|---|
+        | 用途適合性 | ✕ 契約外の利用となり将来の保証がない | ◎ 契約内の利用 |
+
+        用途適合性で案Aは契約外の利用となるため、案Bを採用する。
+        """
+        #expect(check(rationale: rationale).isEmpty)
+    }
+
+    @Test func tableCellsInOtherSectionsDoNotGroundReasons() {
+        let content = """
+        # 1. Swift を採用する
+        ## 背景
+        ビルドが遅い。
+        ## 決定
+        Swift を採用する。
+        ## 決定理由
+        用途適合性で案Aは契約外の利用となるため。
+        ## 結果
+        | 観点 | 案A |
+        |---|---|
+        | 用途適合性 | 契約外の利用 |
+        """
+        #expect(rule.check(Document(path: "adr.md", content: content)).count == 1)
+    }
+
     @Test func veryShortReasonIsNotJudged() {
         #expect(check(rationale: "速いため。").isEmpty)
     }

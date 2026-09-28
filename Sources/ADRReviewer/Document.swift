@@ -19,6 +19,8 @@ public struct Document: Sendable, Equatable {
     public let sections: [Section]
     /// Prose sentences in order of appearance. See ``Sentence``.
     public let sentences: [Sentence]
+    /// Plain text of every table cell, with the cell's 1-based line, in order of appearance.
+    public let tableCells: [TableCell]
 
     public init(path: String, content: String) {
         self.path = path
@@ -32,6 +34,7 @@ public struct Document: Sendable, Equatable {
         self.headings = headings
         self.sections = Section.all(headings: headings, lines: lines, codeBlockLines: Section.codeBlockLines(in: markup))
         self.sentences = Sentence.all(in: markup)
+        self.tableCells = TableCell.all(in: markup)
     }
 
     public static func == (lhs: Document, rhs: Document) -> Bool {
