@@ -9,16 +9,21 @@ public struct ADRSection: Sendable, Equatable {
     public var aliases: [String]
     /// Severity reported by ``RequiredSectionsRule`` when the section is missing.
     public var severity: Severity
+    /// Heading texts that disqualify a match even when an alias is present, so that
+    /// e.g. 決定理由 is not taken for the 決定 section.
+    public var exclusions: [String]
 
-    public init(name: String, aliases: [String], severity: Severity) {
+    public init(name: String, aliases: [String], severity: Severity, exclusions: [String] = []) {
         self.name = name
         self.aliases = aliases
         self.severity = severity
+        self.exclusions = exclusions
     }
 
     public func matches(_ heading: Heading) -> Bool {
         let title = heading.title.lowercased()
-        return aliases.contains { title.contains($0.lowercased()) }
+        guard aliases.contains(where: { title.contains($0.lowercased()) }) else { return false }
+        return !exclusions.contains { title.contains($0.lowercased()) }
     }
 
     public static let status = ADRSection(
@@ -28,7 +33,7 @@ public struct ADRSection: Sendable, Equatable {
         name: "背景", aliases: ["背景", "コンテキスト", "文脈", "状況", "Context"], severity: .error
     )
     public static let decision = ADRSection(
-        name: "決定", aliases: ["決定", "Decision"], severity: .error
+        name: "決定", aliases: ["決定", "Decision"], severity: .error, exclusions: rationaleAliases
     )
     public static let consequences = ADRSection(
         name: "結果", aliases: ["結果", "影響", "帰結", "Consequences"], severity: .error
@@ -41,11 +46,9 @@ public struct ADRSection: Sendable, Equatable {
 
     /// An optional section that explains why the decision was made. Not part of
     /// ``standard``: a rationale may instead be written inside the decision section.
-    public static let rationale = ADRSection(
-        name: "決定理由",
-        aliases: ["理由", "根拠", "Rationale", "Justification", "Basis", "Reason", "Why"],
-        severity: .warning
-    )
+    public static let rationale = ADRSection(name: "決定理由", aliases: rationaleAliases, severity: .warning)
+
+    private static let rationaleAliases = ["理由", "根拠", "Rationale", "Justification", "Basis", "Reason", "Why"]
 
     /// The standard sections, in the order they usually appear.
     public static let standard: [ADRSection] = [.status, .context, .decision, .consequences, .alternatives]

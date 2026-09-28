@@ -29,6 +29,7 @@ import Testing
         "社内標準は Swift である。したがって Swift を採用する。",
         "Swift を採用する。利点はビルド速度である。",
         "We adopt Swift because the team knows it.",
+        "We adopt Swift so that builds stay fast.",
         "Swift を採用する。\n\n### 理由の詳細\n\n経験者が多いためである。",
     ])
     func decisionWithReasonReportsNothing(decision: String) {

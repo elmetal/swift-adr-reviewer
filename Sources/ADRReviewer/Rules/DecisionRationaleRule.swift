@@ -39,8 +39,7 @@ public struct DecisionRationaleRule: Rule {
         guard let decision = document.sections(matching: .decision).first, !decision.isEmpty else { return [] }
 
         let hasReason = document.sentences(in: decision).contains { sentence in
-            let text = sentence.text.lowercased()
-            return markers.contains { text.contains($0.lowercased()) }
+            markers.contains(where: sentence.contains)
         }
         guard !hasReason else { return [] }
 
