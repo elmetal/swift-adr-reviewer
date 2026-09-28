@@ -120,7 +120,22 @@ Markdown の見出しで次のセクションを持つ ADR を想定していま
 
 ステータスの値は、提案中(Proposed / Draft / 下書き)、承認済み(Accepted / Approved / 承認 / 採用)、却下(Rejected)、廃止(Deprecated / 非推奨)、置き換え済み(Superseded / 置換済み)の表記を認識します。
 
-現時点では閾値やセクション名は固定です。
+## 設定
+
+カレントディレクトリから上に向かって `.adr-reviewer.json` を探し、見つかれば適用します。`--config <path>` で明示することもできます。ルールごとに有効 / 無効と重大度を上書きできます。
+
+```json
+{
+  "rules": {
+    "rationale-evidence": false,
+    "sentence-length": { "severity": "error" }
+  }
+}
+```
+
+値は `true` / `false`(有効 / 無効)か、`enabled` と `severity`(`warning` / `error`)を持つオブジェクトです。書かれていないルールは既定のままです。存在しないルール ID があるとエラーになります。
+
+閾値やセクション名は現時点では固定です。
 
 ## 開発
 

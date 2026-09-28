@@ -1,5 +1,5 @@
 /// How serious a finding is.
-public enum Severity: String, Sendable, Comparable, CaseIterable {
+public enum Severity: String, Sendable, Comparable, CaseIterable, Codable {
     case warning
     case error
 
