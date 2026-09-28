@@ -23,6 +23,7 @@ public struct Reviewer: Sendable {
         UngroundedRationaleRule(),
         AlternativeRejectionRule(),
         DecisionInAlternativesRule(),
+        RationaleEvidenceRule(),
     ])
 
     public func review(_ document: Document) -> [Diagnostic] {
