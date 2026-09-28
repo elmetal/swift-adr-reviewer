@@ -6,14 +6,37 @@ public struct Sentence: Sendable, Equatable {
     public var text: String
     /// 1-based line number where the sentence starts.
     public var line: Int
+    /// `true` when any part of the sentence is link text or image alt text.
+    public var containsLink: Bool
 
-    public init(text: String, line: Int) {
+    public init(text: String, line: Int, containsLink: Bool = false) {
         self.text = text
         self.line = line
+        self.containsLink = containsLink
     }
 
     /// Number of characters in the sentence.
     public var length: Int { text.count }
+
+    /// Whether the sentence contains `expression`, ignoring ASCII case and any
+    /// whitespace in `expression` (sentence text never contains whitespace).
+    public func contains(_ expression: String) -> Bool {
+        let needle = expression.filter { !$0.isWhitespace }.lowercased()
+        return !needle.isEmpty && text.lowercased().contains(needle)
+    }
+
+    /// `true` when the sentence carries something that can back a claim: a link,
+    /// a decimal number, or a reference to a measurement or source.
+    public var hasBacking: Bool {
+        containsLink
+            || text.unicodeScalars.contains { $0.properties.numericType == .decimal }
+            || Self.backingMarkers.contains(where: contains)
+    }
+
+    static let backingMarkers: [String] = [
+        "http", "adr-", "出典", "参照", "参考", "計測", "測定", "ベンチマーク", "調査", "検証結果", "実測",
+        "source", "measured", "benchmark", "survey",
+    ]
 }
 
 extension Document {
@@ -45,24 +68,28 @@ extension Sentence {
         var result: [Sentence] = []
         var current: [Character] = []
         var currentLine: Int? = nil
+        var currentHasLink = false
         var terminated = false
 
         func flush() {
             if let line = currentLine, !current.isEmpty {
-                result.append(Sentence(text: String(current), line: line))
+                result.append(Sentence(text: String(current), line: line, containsLink: currentHasLink))
             }
             current = []
             currentLine = nil
+            currentHasLink = false
             terminated = false
         }
 
-        for (character, line) in zip(paragraph.characters, paragraph.lines) {
+        for index in paragraph.characters.indices {
+            let character = paragraph.characters[index]
             if character.isWhitespace { continue }
             if terminated, !terminators.contains(character), !closers.contains(character) {
                 flush()
             }
-            if currentLine == nil { currentLine = line }
+            if currentLine == nil { currentLine = paragraph.lines[index] }
             current.append(character)
+            if paragraph.inLink[index] { currentHasLink = true }
             if terminators.contains(character) { terminated = true }
         }
         flush()
@@ -74,11 +101,13 @@ extension Sentence {
 struct ProseParagraph {
     var characters: [Character] = []
     var lines: [Int] = []
+    var inLink: [Bool] = []
 
-    mutating func append(_ text: String, line: Int) {
+    mutating func append(_ text: String, line: Int, inLink: Bool) {
         for character in text {
             characters.append(character)
             lines.append(line)
+            self.inLink.append(inLink)
         }
     }
 }
@@ -88,6 +117,8 @@ private struct ParagraphCollector: MarkupWalker {
     private var current: ProseParagraph? = nil
     /// Line of the nearest enclosing inline node with a known range; used for nodes without one.
     private var fallbackLine = 1
+    /// Greater than zero while inside a Link or Image.
+    private var linkDepth = 0
 
     mutating func visitParagraph(_ paragraph: Paragraph) {
         current = ProseParagraph()
@@ -105,12 +136,24 @@ private struct ParagraphCollector: MarkupWalker {
         append(inlineCode.code, range: inlineCode.range)
     }
 
+    mutating func visitLink(_ link: Link) {
+        linkDepth += 1
+        descendInto(link)
+        linkDepth -= 1
+    }
+
+    mutating func visitImage(_ image: Image) {
+        linkDepth += 1
+        descendInto(image)
+        linkDepth -= 1
+    }
+
     mutating func visitSoftBreak(_ softBreak: SoftBreak) {}
     mutating func visitLineBreak(_ lineBreak: LineBreak) {}
     mutating func visitInlineHTML(_ inlineHTML: InlineHTML) {}
 
-    // Link, Image, Emphasis, Strong, Strikethrough and InlineAttributes are handled by
-    // the default implementation, which descends into their children (link text, alt text…).
+    // Emphasis, Strong, Strikethrough and InlineAttributes are handled by the default
+    // implementation, which descends into their children.
     // Block nodes other than Paragraph are likewise descended into, so paragraphs inside
     // list items and block quotes are found, while headings, code blocks, tables and HTML
     // blocks contribute nothing because they contain no Paragraph.
@@ -118,6 +161,6 @@ private struct ParagraphCollector: MarkupWalker {
     private mutating func append(_ text: String, range: SourceRange?) {
         guard current != nil else { return }
         if let line = range?.lowerBound.line { fallbackLine = line }
-        current?.append(text, line: fallbackLine)
+        current?.append(text, line: fallbackLine, inLink: linkDepth > 0)
     }
 }

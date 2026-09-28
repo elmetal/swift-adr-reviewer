@@ -67,6 +67,28 @@ import Testing
         #expect(sentences(content).map(\.text) == ["swiftbuildを公式ドキュメントの通りに実行する。"])
     }
 
+    @Test func containsLinkIsSetForSentencesWithLinkOrImage() {
+        let content = "リンク無し。[調査](https://example.com)を参照。![図](a.png)の通り。"
+        #expect(sentences(content).map(\.containsLink) == [false, true, true])
+    }
+
+    @Test func containsMatchesIgnoringWhitespaceAndCase() {
+        let sentence = Sentence(text: "WeadoptitsothatbuildsareFast.", line: 1)
+        #expect(sentence.contains("so that"))
+        #expect(sentence.contains("Builds Are"))
+        #expect(!sentence.contains("slow"))
+        #expect(!sentence.contains(" "))
+    }
+
+    @Test func hasBackingDetectsLinksNumbersAndSourceMarkers() {
+        #expect(Sentence(text: "速い。", line: 1).hasBacking == false)
+        #expect(Sentence(text: "速い。", line: 1, containsLink: true).hasBacking)
+        #expect(Sentence(text: "30%速い。", line: 1).hasBacking)
+        #expect(Sentence(text: "３０％速い。", line: 1).hasBacking)
+        #expect(Sentence(text: "計測では速い。", line: 1).hasBacking)
+        #expect(Sentence(text: "参照:社内資料。", line: 1).hasBacking)
+    }
+
     @Test func emptyDocumentHasNoSentences() {
         #expect(sentences("").isEmpty)
         #expect(sentences("# 見出しだけ").isEmpty)

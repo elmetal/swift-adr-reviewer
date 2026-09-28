@@ -8,6 +8,13 @@ import Testing
         #expect(!ADRSection.decision.matches(Heading(level: 2, title: "背景", line: 1)))
     }
 
+    @Test func decisionDoesNotMatchRationaleHeadings() {
+        #expect(!ADRSection.decision.matches(Heading(level: 2, title: "決定理由", line: 1)))
+        #expect(!ADRSection.decision.matches(Heading(level: 2, title: "Decision Rationale", line: 1)))
+        #expect(ADRSection.rationale.matches(Heading(level: 2, title: "決定理由", line: 1)))
+        #expect(ADRSection.decision.matches(Heading(level: 2, title: "決定事項", line: 1)))
+    }
+
     @Test func sectionsMatchingReturnsBodies() {
         let document = Document(path: "adr.md", content: "## ステータス\n承認済み\n## 背景\n本文\n")
         let matches = document.sections(matching: .status)
